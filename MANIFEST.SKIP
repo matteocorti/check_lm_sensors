@@ -13,3 +13,5 @@
 ^.#
 ^#
 ^check_lm_sensors-
+\.git
+\.travis.yml
