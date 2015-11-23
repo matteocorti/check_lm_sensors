@@ -1,3 +1,7 @@
+2015-11-23  Martin Schulze
+
+	* check_lm_sensors: fixed an issue with device names on new kernels 
+
 2011-04-18 Matteo Corti <matteo.corti@id.ethz.ch>
 
         * Makefile.PL: fixed some dependencies

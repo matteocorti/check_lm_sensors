@@ -5,18 +5,13 @@
 #
 # See  the INSTALL file for installation instructions
 #
-# Copyright (c) 2009, ETH Zurich.
+# Copyright (c) 2009-2010, ETH Zurich.
+# Copyright (c) 2009-2015
 #
 # This module is free software; you can redistribute it and/or modify it
 # under the terms of GNU general public license (gpl) version 3.
 # See the LICENSE file for details.
 #
-
-# RCS information (required by Perl::Critic)
-#   $Id$
-#   $Revision$
-#   $HeadURL$
-#   $Date$
 
 use 5.00800;
 
@@ -32,7 +27,7 @@ use Monitoring::Plugin::Getopt;
 use Monitoring::Plugin;
 use Readonly;
 
-use version; our $VERSION = '4.0.0';
+use version; our $VERSION = '4.1.0';
 
 my $desc;
 my $drives;
@@ -319,7 +314,8 @@ sub parse_drives {
 
             my $temp;
 
-            my $pid = open $output, q{-|}, "$command 2>&1"
+            my $pid = open $output, q{-|},
+              "$command 2>&1"
               or $plugin->nagios_exit( UNKNOWN,
                 "Cannot execute $command: $OS_ERROR" );
             while (<$output>) {
@@ -336,12 +332,12 @@ sub parse_drives {
                 # check if the sensor has to be renamed
 
                 $sensor_values{$name} = $temp;
-		$sensor_names{$name} = $name;
-		while ( my ( $original_name, $chosen_name ) = each %renames ) {
-		  if ( $original_name eq $name ) {
-                    $sensor_names{$chosen_name} = $name;
-		  }
-		}
+                $sensor_names{$name}  = $name;
+                while ( my ( $original_name, $chosen_name ) = each %renames ) {
+                    if ( $original_name eq $name ) {
+                        $sensor_names{$chosen_name} = $name;
+                    }
+                }
 
                 verbose "found temperature for drive $name ($name = $_)\n";
 
@@ -390,12 +386,15 @@ sub parse_sensors {
 
         # get device name
         my $name_handler;
-        open $name_handler, q{<}, "$DEV_DIR/$device/name"
-          or open $name_handler, q{<}, "$DEV_DIR/$device/device/name"
-            or $plugin->nagios_exit( UNKNOWN,
-              "Error reading $DEV_DIR/$device/[device/]name: $OS_ERROR" );
+        open $name_handler,      q{<}, "$DEV_DIR/$device/name"
+          or open $name_handler, q{<},
+          "$DEV_DIR/$device/device/name"
+          or $plugin->nagios_exit( UNKNOWN,
+            "Error reading $DEV_DIR/$device/[device/]name: $OS_ERROR" );
         while (<$name_handler>) {
-            chomp; $device_name = $_; last;
+            chomp;
+            $device_name = $_;
+            last;
         }
         close $name_handler
           or $plugin->nagios_exit( UNKNOWN,
@@ -416,13 +415,18 @@ sub parse_sensors {
             my $sensor_handler;
             my $value;
 
-            open $sensor_handler, q{<}, "$DEV_DIR/$device/device/$sensor" . '_input'
+            open $sensor_handler, q{<},
+              "$DEV_DIR/$device/device/$sensor"
+              . '_input'
               or $plugin->nagios_exit(
-                  UNKNOWN,
-                  "Error reading $DEV_DIR/$device/device/$sensor" . "_input: $OS_ERROR"
+                UNKNOWN,
+                "Error reading $DEV_DIR/$device/device/$sensor"
+                  . "_input: $OS_ERROR"
               );
             while (<$sensor_handler>) {
-                chomp; $value = $_; last;
+                chomp;
+                $value = $_;
+                last;
             }
             close $sensor_handler
               or $plugin->nagios_exit( UNKNOWN,
@@ -433,7 +437,7 @@ sub parse_sensors {
 
             # check if the sensor has to be renamed
             $sensor_values{$full_name} = $value;
-	    $sensor_names{$full_name} = $full_name;
+            $sensor_names{$full_name}  = $full_name;
             while ( my ( $original_name, $chosen_name ) = each %renames ) {
                 if ( $original_name eq $full_name ) {
                     $sensor_names{$chosen_name} = $full_name;
@@ -599,7 +603,7 @@ while ( ( $name, $limits ) = each %highs ) {
 
     my ( $warn, $crit ) = split /,/mxs, $limits;
 
-    my $value = $sensor_values{$sensor_names{$name}};
+    my $value = $sensor_values{ $sensor_names{$name} };
 
     push @status, "$name=$value;$warn;$crit;;";
     push @desc,   "$name=$value";
@@ -614,7 +618,7 @@ while ( ( $name, $limits ) = each %lows ) {
 
     my ( $warn, $crit ) = split /,/mxs, $limits;
 
-    my $value = $sensor_values{$sensor_names{$name}};
+    my $value = $sensor_values{ $sensor_names{$name} };
 
     push @status, "$name=$value;$warn;$crit;;";
     push @desc,   "$name=$value";
@@ -629,8 +633,8 @@ while ( ( $name, $limits ) = each %ranges ) {
 
     my ( $warn, $crit, $ref ) = split /,/mxs, $limits;
 
-    my $value = $sensor_values{$sensor_names{$name}};
-    my $diff  = abs( $value - $ref );  ## no critic (ProhibitParensWithBuiltins)
+    my $value = $sensor_values{ $sensor_names{$name} };
+    my $diff = abs( $value - $ref );   ## no critic (ProhibitParensWithBuiltins)
 
     push @status, "$name=$value;$warn;$crit;;";
     push @desc,   "$name=$value";
