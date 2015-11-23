@@ -390,9 +390,10 @@ sub parse_sensors {
 
         # get device name
         my $name_handler;
-        open $name_handler, q{<}, "$DEV_DIR/$device/device/name"
-          or $plugin->nagios_exit( UNKNOWN,
-            "Error reading $DEV_DIR/$device/device/name: $OS_ERROR" );
+        open $name_handler, q{<}, "$DEV_DIR/$device/name"
+          or open $name_handler, q{<}, "$DEV_DIR/$device/device/name"
+            or $plugin->nagios_exit( UNKNOWN,
+              "Error reading $DEV_DIR/$device/[device/]name: $OS_ERROR" );
         while (<$name_handler>) {
             chomp; $device_name = $_; last;
         }
