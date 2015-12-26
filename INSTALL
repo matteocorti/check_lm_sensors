@@ -70,5 +70,5 @@ Installing on Ubuntu 14.04
 
 To install the required modules in Ubuntu 14.04 you need to run the following command:
 
-    sudo apt-get install liblist-moreutils-perl libnagios-plugin-perl libmonitoring-availability-perl libmonitoring-livestatus-perl libmonitoring-livestatus-class-perl 
+    sudo apt-get install liblist-moreutils-perl libnagios-plugin-perl libmonitoring-availability-perl libmonitoring-livestatus-perl libmonitoring-livestatus-class-perl libreadonly-perl 
 
