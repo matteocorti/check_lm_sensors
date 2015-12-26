@@ -23,8 +23,10 @@ use Data::Dumper;
 use English qw(-no_match_vars);
 use Getopt::Long;
 use List::MoreUtils qw(apply);
-use Monitoring::Plugin::Getopt;
-use Monitoring::Plugin;
+#use Monitoring::Plugin::Getopt;
+use Nagios::Plugin::Getopt;
+#use Monitoring::Plugin;
+use Nagios::Plugin;
 use Readonly;
 
 use version; our $VERSION = '4.1.0';
@@ -57,7 +59,8 @@ $desc      = q{};
 $drives    = 1;
 $help      = q{};
 $prog_name = 'LM_SENSORS';
-$plugin    = Monitoring::Plugin->new( shortname => $prog_name );
+#$plugin    = Monitoring::Plugin->new( shortname => $prog_name );
+$plugin    = Nagios::Plugin->new( shortname => $prog_name );
 $sensors   = 1;
 $status    = q{};
 $unknowns  = q{};
@@ -660,4 +663,5 @@ if ($warnings) {
 $plugin->nagios_exit( OK, $output );
 
 1;
+
 

@@ -64,3 +64,11 @@ Generate the man page with pod2man
 
 Please report any installation problem to <matteo@corti.li> or
 open a ticket at https://github.com/matteocorti/check_lm_sensors/issues
+
+Installing on Ubuntu 14.04
+==========================
+
+To install the required modules in Ubuntu 14.04 you need to run the following command:
+
+    sudo apt-get install liblist-moreutils-perl libnagios-plugin-perl libmonitoring-availability-perl libmonitoring-livestatus-perl libmonitoring-livestatus-class-perl 
+
