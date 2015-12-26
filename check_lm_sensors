@@ -23,9 +23,7 @@ use Data::Dumper;
 use English qw(-no_match_vars);
 use Getopt::Long;
 use List::MoreUtils qw(apply);
-#use Monitoring::Plugin::Getopt;
 use Nagios::Plugin::Getopt;
-#use Monitoring::Plugin;
 use Nagios::Plugin;
 use Readonly;
 
@@ -59,7 +57,6 @@ $desc      = q{};
 $drives    = 1;
 $help      = q{};
 $prog_name = 'LM_SENSORS';
-#$plugin    = Monitoring::Plugin->new( shortname => $prog_name );
 $plugin    = Nagios::Plugin->new( shortname => $prog_name );
 $sensors   = 1;
 $status    = q{};
