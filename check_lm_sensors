@@ -23,11 +23,52 @@ use Data::Dumper;
 use English qw(-no_match_vars);
 use Getopt::Long;
 use List::MoreUtils qw(apply);
-use Monitoring::Plugin::Getopt;
-use Monitoring::Plugin;
 use Readonly;
 
-use version; our $VERSION = '4.1.0';
+my $plugin_module = load_module( 'Monitoring::Plugin', 'Nagios::Plugin' );
+my $plugin_threshold_module =
+  load_module( 'Monitoring::Plugin::Threshold', 'Nagios::Plugin::Threshold' );
+my $plugin_getopt_module =
+  load_module( 'Monitoring::Plugin::Getopt', 'Nagios::Plugin::Getopt' );
+
+# Check which version of the monitoring plugins is available
+
+sub load_module {
+
+    my @names = @_;
+    my $loaded_module;
+
+    for my $name (@names) {
+
+        my $file = $name;
+
+        # requires need either a bare word or a file name
+        $file =~ s{::}{/}gsxm;
+        $file .= '.pm';
+
+        eval {    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+            require $file;
+            $name->import();
+        };
+        if ( !$EVAL_ERROR ) {
+            $loaded_module = $name;
+            last;
+        }
+    }
+
+    if ( !$loaded_module ) {
+        #<<<
+        print 'CHECK_UPDATES: plugin not found: ' . join( ', ', @names ) . "\n";  ## no critic (RequireCheckedSyscall)
+        #>>>
+
+        exit 2;
+    }
+
+    return $loaded_module;
+
+}
+
+use version; our $VERSION = '4.1.1';
 
 my $desc;
 my $drives;
@@ -57,7 +98,7 @@ $desc      = q{};
 $drives    = 1;
 $help      = q{};
 $prog_name = 'LM_SENSORS';
-$plugin    = Monitoring::Plugin->new( shortname => $prog_name );
+$plugin    = $plugin_module->new( shortname => $prog_name );
 $sensors   = 1;
 $status    = q{};
 $unknowns  = q{};
@@ -82,7 +123,7 @@ sub verbose {
     my $level   = shift;
 
     if ( !defined $message ) {
-        $plugin->nagios_exit( UNKNOWN,
+        $plugin->nagios_exit( $plugin_module->UNKNOWN,
             q{Internal error: not enough parameters for 'verbose'} );
     }
 
@@ -119,18 +160,19 @@ sub check_arguments {
     for my $sensor ( keys %{$checks_ref} ) {
 
         if ( !defined $sensor_names{$sensor} ) {
-            $plugin->nagios_exit( UNKNOWN, "unknown sensor $sensor" );
+            $plugin->nagios_exit( $plugin_module->UNKNOWN,
+                "unknown sensor $sensor" );
         }
         else {
             my @numbers = split /,/mxs, $checks_ref->{$sensor};
             if ( @numbers != $number_of_arguments ) {
-                $plugin->nagios_exit( UNKNOWN,
+                $plugin->nagios_exit( $plugin_module->UNKNOWN,
 "wrong number of arguments ($checks_ref->{$sensor}) for $sensor"
                 );
             }
             for my $number (@numbers) {
                 if ( !( $number =~ /^-?\d+[.]?\d*$/mxs ) ) {
-                    $plugin->nagios_exit( UNKNOWN,
+                    $plugin->nagios_exit( $plugin_module->UNKNOWN,
                         "$number (in $checks_ref->{$sensor}) is not a number" );
                 }
             }
@@ -220,7 +262,7 @@ EOT
 
     ## use critic
 
-    $plugin->nagios_exit( UNKNOWN, 'Invalid arguments' );
+    $plugin->nagios_exit( $plugin_module->UNKNOWN, 'Invalid arguments' );
 
     return;
 
@@ -242,8 +284,11 @@ sub get_path {
     my $output;
     my $path;
 
-    my $pid = open $output, q{-|}, "$command 2>&1"
-      or $plugin->nagios_exit( UNKNOWN, "Cannot execute $command: $OS_ERROR" );
+    ## no critic (InputOutput::RequireBriefOpen)
+    my $pid = open $output, q{-|},
+      "$command 2>&1"
+      or $plugin->nagios_exit( $plugin_module->UNKNOWN,
+        "Cannot execute $command: $OS_ERROR" );
     while (<$output>) {
         chomp;
         if ( !/^which:/mxs ) {
@@ -256,9 +301,10 @@ sub get_path {
 
         # close to a piped open return false if the command with non-zero
         # status. In this case $! is set to 0
-        $plugin->nagios_exit( UNKNOWN,
+        $plugin->nagios_exit( $plugin_module->UNKNOWN,
             "Error while closing pipe to $command: $OS_ERROR\n" );
     }
+    ## use critic
 
     return $path;
 
@@ -284,8 +330,10 @@ sub parse_drives {
         my @disks;
 
         ## no critic (InputOutput::RequireBriefOpen)
-        open $IN, '<', '/proc/partitions'
-          or $plugin->nagios_exit( UNKNOWN, 'Cannot open /proc/partitions' );
+        open $IN, '<',
+          '/proc/partitions'
+          or $plugin->nagios_exit( $plugin_module->UNKNOWN,
+            'Cannot open /proc/partitions' );
         ## use critic
 
         while (<$IN>) {
@@ -302,7 +350,8 @@ sub parse_drives {
         }
 
         close $IN
-          or $plugin->nagios_exit( UNKNOWN, "Cannot close input: $OS_ERROR\n" );
+          or $plugin->nagios_exit( $plugin_module->UNKNOWN,
+            "Cannot close input: $OS_ERROR\n" );
 
         for my $name (@disks) {
 
@@ -316,7 +365,7 @@ sub parse_drives {
 
             my $pid = open $output, q{-|},
               "$command 2>&1"
-              or $plugin->nagios_exit( UNKNOWN,
+              or $plugin->nagios_exit( $plugin_module->UNKNOWN,
                 "Cannot execute $command: $OS_ERROR" );
             while (<$output>) {
                 chomp;
@@ -324,7 +373,7 @@ sub parse_drives {
                 last;
             }
             close $output
-              or $plugin->nagios_exit( UNKNOWN,
+              or $plugin->nagios_exit( $plugin_module->UNKNOWN,
                 "Error while executing $command: $OS_ERROR\n" );
 
             if ( $temp =~ /^[\d]+$/mxs ) {
@@ -378,7 +427,8 @@ sub parse_sensors {
     my @devices = grep { m/^[^.]/mxs } readdir $dir_handle;
 
     closedir $dir_handle
-      or $plugin->nagios_exit( UNKNOWN, "Error closing $DEV_DIR: $OS_ERROR" );
+      or $plugin->nagios_exit( $plugin_module->UNKNOWN,
+        "Error closing $DEV_DIR: $OS_ERROR" );
 
     for my $device (@devices) {
 
@@ -386,10 +436,12 @@ sub parse_sensors {
 
         # get device name
         my $name_handler;
+
+        ## no critic (InputOutput::RequireBriefOpen)
         open $name_handler,      q{<}, "$DEV_DIR/$device/name"
           or open $name_handler, q{<},
           "$DEV_DIR/$device/device/name"
-          or $plugin->nagios_exit( UNKNOWN,
+          or $plugin->nagios_exit( $plugin_module->UNKNOWN,
             "Error reading $DEV_DIR/$device/[device/]name: $OS_ERROR" );
         while (<$name_handler>) {
             chomp;
@@ -397,8 +449,9 @@ sub parse_sensors {
             last;
         }
         close $name_handler
-          or $plugin->nagios_exit( UNKNOWN,
+          or $plugin->nagios_exit( $plugin_module->UNKNOWN,
             "Error closing $DEV_DIR/$device/device/name: $OS_ERROR" );
+        ## use critic
 
         # list sensors
         opendir $dir_handle, "$DEV_DIR/$device/device/"
@@ -406,7 +459,7 @@ sub parse_sensors {
         my @sensors = apply { s/_input//mxs; }
         grep { m/^[^.].*_input/mxs } readdir $dir_handle;
         closedir $dir_handle
-          or $plugin->nagios_exit( UNKNOWN,
+          or $plugin->nagios_exit( $plugin_module->UNKNOWN,
             "Error closing $DEV_DIR/$device/device: $OS_ERROR" );
 
         for my $sensor (@sensors) {
@@ -415,11 +468,12 @@ sub parse_sensors {
             my $sensor_handler;
             my $value;
 
+            ## no critic (InputOutput::RequireBriefOpen)
             open $sensor_handler, q{<},
               "$DEV_DIR/$device/device/$sensor"
               . '_input'
               or $plugin->nagios_exit(
-                UNKNOWN,
+                $plugin_module->UNKNOWN,
                 "Error reading $DEV_DIR/$device/device/$sensor"
                   . "_input: $OS_ERROR"
               );
@@ -429,9 +483,12 @@ sub parse_sensors {
                 last;
             }
             close $sensor_handler
-              or $plugin->nagios_exit( UNKNOWN,
-                    "Error closing $DEV_DIR/$device/device/$sensor"
-                  . "_input: $OS_ERROR" );
+              or $plugin->nagios_exit(
+                $plugin_module->UNKNOWN,
+                "Error closing $DEV_DIR/$device/device/$sensor"
+                  . "_input: $OS_ERROR"
+              );
+            ## use critic
 
             my $full_name = $device_name . q{_} . $sensor;
 
@@ -532,7 +589,7 @@ $result = GetOptions(
         print "check_lm_sensors version $VERSION\n";
         ## use critic
 
-        exit UNKNOWN;
+        exit $plugin_module->UNKNOWN;
 
     }
 );
@@ -546,7 +603,8 @@ if (   !( defined $list )
     && !(%ranges)
     && !(%lows) )
 {
-    $plugin->nagios_exit( UNKNOWN, 'at least one check has to be specified' );
+    $plugin->nagios_exit( $plugin_module->UNKNOWN,
+        'at least one check has to be specified' );
 }
 
 if ($drives) {
@@ -650,14 +708,14 @@ while ( ( $name, $limits ) = each %ranges ) {
 my $output = ( join q{ }, @desc ) . q{|} . ( join q{ }, @status );
 
 if ($criticals) {
-    $plugin->nagios_exit( CRITICAL, $output );
+    $plugin->nagios_exit( $plugin_module->CRITICAL, $output );
 }
 
 if ($warnings) {
-    $plugin->nagios_exit( WARNING, $output );
+    $plugin->nagios_exit( $plugin_module->WARNING, $output );
 }
 
-$plugin->nagios_exit( OK, $output );
+$plugin->nagios_exit( $plugin_module->OK, $output );
 
 1;
 

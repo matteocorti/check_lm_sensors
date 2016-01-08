@@ -1,3 +1,6 @@
+2016-01-08 (Version 4.1.1)
+* the plugins falls back to the Nagios:: plugins if the Monitoring:: plugins are not installed
+
 2015-11-23 (Version 4.1.0)
 * fix for device names on new kernels
 

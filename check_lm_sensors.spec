@@ -1,4 +1,4 @@
-%define version          4.1.0
+%define version          4.1.1
 %define release          0
 %define sourcename       check_lm_sensors
 %define packagename      nagios-plugins-check-lm-sensors
@@ -16,7 +16,7 @@ License:       GPLv3+
 Packager:      Matteo Corti <matteo@corti.li>
 Group:         Applications/System
 BuildRoot:     %{_tmppath}/%{packagename}-%{version}-%{release}-root-%(%{__id_u} -n)
-Source:        https://github.com/matteocorti/check_lm_sensors/releases/download/v4.1.0/check_lm_sensors-4.1.0.tar.gz
+Source:        https://github.com/matteocorti/check_lm_sensors/releases/download/v4.1.1/check_lm_sensors-4.1.1.tar.gz
 
 Requires: hddtemp
 
@@ -56,6 +56,9 @@ rm -rf %{buildroot}
 %{_mandir}/man1/%{sourcename}.1*
 
 %changelog
+* Fri Jan  7 2016 Matteo Corti <matteo@corti.li> - 4.1.1-0
+- Updated to 4.1.1
+
 * Mon Nov 23 2015 Matteo Corti <matteo@corti.li> - 4.1.0-0
 - Updated to 4.1.0
 
