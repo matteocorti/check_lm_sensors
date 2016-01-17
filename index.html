@@ -51,78 +51,96 @@
       </p>     
 
       
-      <hr>
+      <h1>
+	<a id="usage" class="anchor" href="#usage" aria-hidden="true">
+	  <span class="octicon octicon-link"></span>
+	</a>
+	Usage
+      </h1>
 
-<p>usage:</p>
+      <pre>
+-?, --help      help
 
-<p>-?, --help      help</p>
-
-<p>-l, --low       specifies a check for a sensor value which is too low.
+-l, --low       specifies a check for a sensor value which is too low.
                   Example:
                     --low fan1=2000,1000
                   will give a warning if the value of the fan1 sensor drops
                   below 2000 RPMs and a critical status if it drops below
-                  1000 RPMs</p>
+                  1000 RPMs
 
-<p>-h, --high      specifies a check for a sensor value which is too high.
+-h, --high      specifies a check for a sensor value which is too high.
                   Example:
                     --high temp1=50,60
                   will give a warning if the value of the temp1 sensor reaches
-                  50 degrees and a critical status if it reaches 60 degrees</p>
+                  50 degrees and a critical status if it reaches 60 degrees
 
-<p>-r, --range     specifies a check for a sensor value which should stay
+-r, --range     specifies a check for a sensor value which should stay
                   in a given range.
                   Example:
                     --range v1=1,2,12
                   will give a warning if the value of the sensor gets outside
                   the 11-13 range (12+-1) and a critical status if the value is
-                  outside the 10-14 range (12+-2)</p>
+                  outside the 10-14 range (12+-2)
 
-<p>--rename        renames a sensor in the performance output (useful if you
+--rename        renames a sensor in the performance output (useful if you
                   want to have common names for similar sensors across different
                   machines)
                   Example:
-                    --rename cputemp=temp1</p>
+                    --rename cputemp=temp1
 
-<p>--list          list all available sensors</p>
+--list          list all available sensors
 
-<p>--nosensors     disable checks on check lm_sensors</p>
+--nosensors     disable checks on check lm_sensors
 
-<p>--nodrives      disable checks on drive temperatures</p>
+--nodrives      disable checks on drive temperatures
 
-<p>-d, --drives    enable checks on drive temperature</p>
+-d, --drives    enable checks on drive temperature
 
-<p>--hddtemp_bin   manually specifies the location of the hddtemp binary</p>
+--hddtemp_bin   manually specifies the location of the hddtemp binary
 
-<p>--sensors_bin   manually specified the location of the sensors binary</p>
+--sensors_bin   manually specified the location of the sensors binary
 
-<p>-v, --verbose   verbose output</p>
+-v, --verbose   verbose output
 
-<p>--version       prints $prog_name's version and exits</p>
+--version       prints $prog_name's version and exits
+      </pre>
 
-<hr>
+      <h1>
+	<a id="values" class="anchor" href="#values" aria-hidden="true">
+	  <span class="octicon octicon-link"></span>
+	</a>
+	Values
+      </h1>
 
-<p>Values
-(see also Documentation/hwmon/sysfs-interface in the kernel documentation)</p>
+      <p>
+	See
+	<a href="https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface">
+	  Documentation/hwmon/sysfs-interface
+	</a>in the kernel documentation
+      </p>
 
-<p>lm-sensors supports the following sensors</p>
+      <p>lm-sensors supports the following sensors</p>
 
-<ul>
-<li>'in'     voltage channel in millivolt</li>
-<li>'cpu'    CPU core reference voltage in millivolt</li>
-<li>'fan'    fan speed in revolutions per minute (RPM)</li>
-<li>'pwm'    pulse width modulation (255 is 100%)</li>
-<li>'temp'   temperature in millidegree Celsius (or millivolt)</li>
-<li>'curr'   current in milliampere</li>
-<li>'power'  in microWatt</li>
-<li>'energy' in microJoule</li>
-</ul>
+      <ul>
+	<li>'in'     voltage channel in millivolt</li>
+	<li>'cpu'    CPU core reference voltage in millivolt</li>
+	<li>'fan'    fan speed in revolutions per minute (RPM)</li>
+	<li>'pwm'    pulse width modulation (255 is 100%)</li>
+	<li>'temp'   temperature in millidegree Celsius (or millivolt)</li>
+	<li>'curr'   current in milliampere</li>
+	<li>'power'  in microWatt</li>
+	<li>'energy' in microJoule</li>
+      </ul>
 
-<hr>
+      <h1>
+	<a id="example" class="anchor" href="#example" aria-hidden="true">
+	  <span class="octicon octicon-link"></span>
+	</a>
+	Example
+      </h1>
 
-<p>Example:</p>
-
-<p>$ check_lm_sensors --high it8718_temp1=20000,30000 --range it8718_in0=100,200,1200 -v
+      <pre>
+$ check_lm_sensors --high it8718_temp1=20000,30000 --range it8718_in0=100,200,1200 -v
 hddtemp found at /usr/bin/hddtemp
 Looking for drives in /proc/partitions
 found temperature for drive sda (sda = 47)
@@ -147,7 +165,8 @@ found sensor it8718_temp3 (58000)
 found sensor it8718_fan1 (2288)
 found sensor it8718_fan2 (0)
 found sensor it8718_fan3 (0)
-LM_SENSORS OK - it8718_temp1=13000 it8718_in0=1152|it8718_temp1=13000;20000;30000;; it8718_in0=1152;100;200;;</p>
+LM_SENSORS OK - it8718_temp1=13000 it8718_in0=1152|it8718_temp1=13000;20000;30000;; it8718_in0=1152;100;200;;
+</pre>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/matteocorti/check_lm_sensors">check_lm_sensors</a> is maintained by <a href="https://github.com/matteocorti">matteocorti</a>.</span>
