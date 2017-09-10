@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/env perl
 
 # check_lm_sensors is a Nagios plugin to monitor the values of on board sensors and hard
 # disk temperatures on Linux systems
@@ -25,7 +25,49 @@ use Getopt::Long;
 use Carp;
 use English qw(-no_match_vars);
 
-use Nagios::Plugin;
+my $plugin_module = load_module( 'Monitoring::Plugin', 'Nagios::Plugin' );
+my $plugin_threshold_module =
+  load_module( 'Monitoring::Plugin::Threshold', 'Nagios::Plugin::Threshold' );
+my $plugin_getopt_module =
+  load_module( 'Monitoring::Plugin::Getopt', 'Nagios::Plugin::Getopt' );
+
+# Check which version of the monitoring plugins is available
+
+sub load_module {
+
+    my @names = @_;
+    my $loaded_module;
+
+    for my $name (@names) {
+
+        my $file = $name;
+
+        # requires need either a bare word or a file name
+        $file =~ s{::}{/}gsxm;
+        $file .= '.pm';
+
+        eval {    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+            require $file;
+            $name->import();
+        };
+        if ( !$EVAL_ERROR ) {
+            $loaded_module = $name;
+            last;
+        }
+    }
+
+    if ( !$loaded_module ) {
+        #<<<
+        print 'CHECK_UPDATES: plugin not found: ' . join( ', ', @names ) . "\n";  ## no critic (RequireCheckedSyscall)
+        #>>>
+
+        exit 2;
+    }
+
+    return $loaded_module;
+
+}
+
 
 use version; our $VERSION = '3.1.0';
 
@@ -73,7 +115,7 @@ $desc      = q{};
 $drives    = 1;
 $help      = q{};
 $prog_name = 'LM_SENSORS';
-$plugin    = Nagios::Plugin->new( shortname => $prog_name );
+$plugin    = $plugin_module->new( shortname => $prog_name );
 $sensors   = 1;
 $space     = q{};
 $status    = q{};
@@ -100,7 +142,7 @@ sub verbose {
     my $level   = shift;
 
     if ( !defined $message ) {
-        $plugin->nagios_exit( UNKNOWN,
+        $plugin->nagios_exit( $plugin_module-> UNKNOWN,
             q{Internal error: not enough parameters for 'verbose'} );
     }
 
@@ -202,7 +244,7 @@ Sensors with a space in the name can be specified
 
 EOT
 
-    $plugin->nagios_exit( UNKNOWN, 'Invalid arguments' );
+    $plugin->nagios_exit( $plugin_module->UNKNOWN, 'Invalid arguments' );
 
     return;
 
@@ -225,7 +267,7 @@ sub get_path {
     my $path;
 
     my $pid = open $output, q{-|}, "$command 2>&1"
-      or $plugin->nagios_exit( UNKNOWN, "Cannot execute $command: $OS_ERROR" );
+      or $plugin->nagios_exit( $plugin_module->UNKNOWN, "Cannot execute $command: $OS_ERROR" );
 
     while (<$output>) {
         chomp;
@@ -240,7 +282,7 @@ sub get_path {
 
         # close to a piped open return false if the command with non-zero
         # status. In this case $! is set to 0
-        $plugin->nagios_exit( UNKNOWN,
+        $plugin->nagios_exit( $plugin_module->UNKNOWN,
             "Error while closing pipe to $command: $OS_ERROR\n" );
     }
 
@@ -266,7 +308,7 @@ sub parse_drives {
         verbose "Looking for drives in /proc/partitions\n";
 
         open $IN, '<', '/proc/partitions'
-          or $plugin->nagios_exit( UNKNOWN, 'Cannot open /proc/partitions' );
+          or $plugin->nagios_exit( $plugin_module->UNKNOWN, 'Cannot open /proc/partitions' );
 
         while (<$IN>) {
 
@@ -289,7 +331,7 @@ sub parse_drives {
             my $output;
 
             my $pid = open $output, q{-|}, "$command 2>&1"
-              or $plugin->nagios_exit( UNKNOWN,
+              or $plugin->nagios_exit( $plugin_module->UNKNOWN,
                 "Cannot execute $command: $OS_ERROR" );
 
             while (<$output>) {
@@ -325,13 +367,13 @@ sub parse_drives {
             }
 
             close $output
-              or $plugin->nagios_exit( UNKNOWN,
+              or $plugin->nagios_exit( $plugin_module->UNKNOWN,
                 "Error while executing $command: $OS_ERROR\n" );
 
         }
 
         close $IN
-          or $plugin->nagios_exit( UNKNOWN, "Cannot close input: $OS_ERROR\n" );
+          or $plugin->nagios_exit( $plugin_module->UNKNOWN, "Cannot close input: $OS_ERROR\n" );
 
     }
     else {
@@ -362,7 +404,7 @@ sub parse_sensors {
 
         my $pid = open $output, q{-|}, "$command 2>&1"
           or
-          $plugin->nagios_exit( UNKNOWN, "Cannot execute $command: $OS_ERROR" );
+          $plugin->nagios_exit( $plugin_module->UNKNOWN, "Cannot execute $command: $OS_ERROR" );
 
         select(undef, undef, undef, .2);
         
@@ -378,14 +420,14 @@ sub parse_sensors {
         }
 
         close $output
-          or $plugin->nagios_exit( UNKNOWN,
+          or $plugin->nagios_exit( $plugin_module->UNKNOWN,
             "Error while executing $command: $OS_ERROR\n" );
 
         $command = "$sensors_bin -A | grep \:";
 
         $pid = open $output, q{-|}, "$command 2>&1"
           or
-          $plugin->nagios_exit( UNKNOWN, "Cannot execute $command: $OS_ERROR" );
+          $plugin->nagios_exit( $plugin_module->UNKNOWN, "Cannot execute $command: $OS_ERROR" );
 
         while (<$output>) {
             chomp;
@@ -414,7 +456,7 @@ sub parse_sensors {
         }
 
         close $output
-          or $plugin->nagios_exit( UNKNOWN,
+          or $plugin->nagios_exit( $plugin_module->UNKNOWN,
             "Error while executing $command: $OS_ERROR\n" );
 
     }
@@ -462,7 +504,7 @@ if (   !( defined $list )
     && !(%ranges)
     && !(%lows) )
 {
-    $plugin->nagios_exit( UNKNOWN, 'at least one check has to be specified' );
+    $plugin->nagios_exit( $plugin_module->UNKNOWN, 'at least one check has to be specified' );
 }
 
 # convert old options
@@ -651,18 +693,18 @@ while ( ( $name, $limits ) = each %ranges ) {
 # build the status string
 
 if ( $criticals ne q{} ) {
-    $plugin->nagios_exit( CRITICAL, "$desc|$status" );
+    $plugin->nagios_exit( $plugin_module->CRITICAL, "$desc|$status" );
 }
 
 if ( $warnings ne q{} ) {
-    $plugin->nagios_exit( WARNING, "$desc|$status" );
+    $plugin->nagios_exit( $plugin_module->WARNING, "$desc|$status" );
 }
 
 if ( $unknowns ne q{} ) {
-    $plugin->nagios_exit( UNKNOWN, "$desc|$status" );
+    $plugin->nagios_exit( $plugin_module->UNKNOWN, "$desc|$status" );
 }
 
-$plugin->nagios_exit( OK, "$desc|$status" );
+$plugin->nagios_exit( $plugin_module->OK, "$desc|$status" );
 
 1;
 
