@@ -20,9 +20,8 @@ BuildArch: noarch
 Requires:       nagios-plugins
 Requires:       hddtemp
 
-#Requires: hddtemp
-#Requires: perl
-#Requires: perl-Nagios-Plugin
+# Fedora build requirement (not needed for EPEL{4,5})
+BuildRequires: perl(ExtUtils::MakeMaker)
 
 %description
 check_lm_sensors is a Nagios plugin to monitor the values of on board sensors and hard
