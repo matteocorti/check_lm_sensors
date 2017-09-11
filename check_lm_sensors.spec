@@ -1,7 +1,9 @@
-%define version 3.1.0
-%define release 0
+%define version         3.1.0
+%define release         0
+%define sourcename      check_lm_sensors
+%define packagename     nagios-plugins-check-lm-senors  
 %define name    check_lm_sensors
-%define _prefix /usr/lib/nagios/plugins/contrib
+%define nagiospluginsdir %{_libdir}/nagios/plugins
 
 Summary:   A Nagios plugin to monitor sensors values
 Name:      %{name}
@@ -11,12 +13,16 @@ License:   GPL
 Packager:  Matteo Corti <matteo.corti@id.ethz.ch>
 Group:     Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
-Source:    http://www.id.ethz.ch/people/allid_list/corti/%{name}-%{version}.tar.gz
+Source:    https://github.com/matteocorti/check_lm_sensors/files/109583/check_lm_sensors-3.1.0.tar.gz
+
 BuildArch: noarch
 
-Requires: hddtemp
-Requires: perl
-Requires: perl-Nagios-Plugin
+Requires:       nagios-plugins
+Requires:       hddtemp
+
+#Requires: hddtemp
+#Requires: perl
+#Requires: perl-Nagios-Plugin
 
 %description
 check_lm_sensors is a Nagios plugin to monitor the values of on board sensors and hard
@@ -41,6 +47,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755, root, root) /usr/share/man/man3/%{name}.3pm.gz
 
 %changelog
+* Mon Sep 11 2017 Fredrik Mikker <fredrik@mikker.se> - 3.1.0-1
+- adding support for Monitoring::Plugins
+
 * Tue Jun 10 2008 Matteo Corti <matteo.corti@id.ethz.ch> - 3.1.0-0
 - repackaging and cleanup
 
