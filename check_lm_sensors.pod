@@ -2,7 +2,8 @@
 
 =head1 NAME
 
-C<check_lm_sensors> - Nagios plugin to monitor hardware sensors and disk temperatures
+C<check_lm_sensors> is a Nagios plugin to monitor the values of on
+board sensors and hard disk temperatures on Linux systems
 
 =head1 DESCRIPTION
 
@@ -11,7 +12,7 @@ sensors and hard disk temperatures on Linux systems
 
 =head1 VERSION
 
-Version 3.1.1
+Version 3.1.0
 
 =head1 SYNOPSIS
 
@@ -49,7 +50,7 @@ verbosity.
 =head1 EXIT STATUS
 
 0 if OK, 1 in case of a warning, 2 in case of a critical status and 3
-in case of an unknown problem
+in case of an unkown problem
 
 =head1 DEPENDENCIES
 
@@ -63,9 +64,9 @@ check_updates depends on
 
 =item * Getopt::Long
 
-=item * Monitoring::Plugin
+=item * Nagios::Plugin
 
-=item * Monitoring::Plugin::Threshold
+=item * Nagios::Plugin::Threshold
 
 =item * version
 
@@ -85,17 +86,17 @@ Nagios documentation
 
 No bugs have been reported.
 
-Please report any bugs or feature requests to matteo@corti.li,
-or through the web interface at https://github.com/matteocorti/check_lm_sensors/issues
+Please report any bugs or feature requests to matteo.corti@id.ethz.ch,
+or through the web interface at
+https://svn.id.ethz.ch/trac/nagios_plugins/newticket
 
 =head1 AUTHOR
 
-Matteo Corti <matteo@corti.li>
+Matteo Corti <matteo.corti@id.ethz.ch>
 
 =head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2007, ETH Zurich.
-Copyright (c) 2007-2105, Matteo Corti
 
 This module is free software; you can redistribute it and/or modify it
 under the terms of GNU general public license (gpl) version 3.

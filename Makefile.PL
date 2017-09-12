@@ -4,10 +4,9 @@ use inc::Module::Install;
 ##############################################################################
 # Define metadata (we read it from the binary)
 
-name              'check_lm_sensors';
-version_from      'check_lm_sensors';
-perl_version_from 'check_lm_sensors';
-all_from          'check_lm_sensors.pod';
+name         'check_lm_sensors';
+version_from 'check_lm_sensors';
+all_from     'check_lm_sensors.pod';
 
 ##############################################################################
 # Specific dependencies
@@ -15,11 +14,11 @@ all_from          'check_lm_sensors.pod';
 include 'version';
 
 my %prereqs = (
-    'Carp'                          => 0,
-    'English'                       => 0,
-    'Getopt::Long'                  => 0,
-    'List::MoreUtils'               => 0,
-    'version'                       => 0,
+requires 'Carp'                      => 0,
+requires 'English'                   => 0,
+requires 'Getopt::Long'              => 0,
+requires 'version'                   => 0
+
 );
 
 if( eval { require Monitoring::Plugin } ) {
@@ -42,13 +41,10 @@ if( eval { require Monitoring::Plugin::Getopt } ) {
 else {
     $prereqs{'Nagios::Plugin::Getopt'} = 0;
 }
-    
+
 install_script  'check_lm_sensors';
 
-auto_install;
-
 WriteMakefile(
-    PREREQ_PM            => \%prereqs,
     INSTALLSCRIPT        => '/usr/lib/nagios/plugins/contrib',
     INSTALLBIN           => '/usr/lib/nagios/plugins/contrib',
     INSTALLSITESCRIPT    => '/usr/lib/nagios/plugins/contrib',
