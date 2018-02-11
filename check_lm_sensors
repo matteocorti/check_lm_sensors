@@ -140,7 +140,7 @@ sub verbose {
 
     }
 
-    return;
+    return 1;
 
 }
 
@@ -432,6 +432,8 @@ sub parse_sensors {
 
     for my $device (@devices) {
 
+        verbose "looking at device $device\n";
+
         my $device_name;
 
         # get device name
@@ -453,28 +455,37 @@ sub parse_sensors {
             "Error closing $DEV_DIR/$device/device/name: $OS_ERROR" );
         ## use critic
 
+
         # list sensors
-        opendir $dir_handle, "$DEV_DIR/$device/device/"
-          or return;
+        my $sensorpath = "$DEV_DIR/$device/device/hwmon/$device/";
+        $sensorpath = "$DEV_DIR/$device/device/"
+            unless -e $sensorpath;
+        verbose "device name is $device_name - will try to open $sensorpath\n";
+        opendir $dir_handle, $sensorpath
+          or (verbose "error $!\n" and return);
+        verbose "success!\n";
         my @sensors = apply { s/_input//mxs; }
         grep { m/^[^.].*_input/mxs } readdir $dir_handle;
         closedir $dir_handle
           or $plugin->nagios_exit( $plugin_module->UNKNOWN,
-            "Error closing $DEV_DIR/$device/device: $OS_ERROR" );
+            "Error closing $sensorpath: $OS_ERROR" );
 
+        verbose "found @sensors\n";
         for my $sensor (@sensors) {
+
+            verbose "looking at sensor $sensor\n";
 
             # get device name
             my $sensor_handler;
             my $value;
 
+            my $inputpath = $sensorpath . $sensor;
             ## no critic (InputOutput::RequireBriefOpen)
             open $sensor_handler, q{<},
-              "$DEV_DIR/$device/device/$sensor"
-              . '_input'
+              $inputpath . '_input'
               or $plugin->nagios_exit(
                 $plugin_module->UNKNOWN,
-                "Error reading $DEV_DIR/$device/device/$sensor"
+                "Error reading $inputpath"
                   . "_input: $OS_ERROR"
               );
             while (<$sensor_handler>) {
@@ -485,12 +496,13 @@ sub parse_sensors {
             close $sensor_handler
               or $plugin->nagios_exit(
                 $plugin_module->UNKNOWN,
-                "Error closing $DEV_DIR/$device/device/$sensor"
+                "Error closing $inputpath"
                   . "_input: $OS_ERROR"
               );
             ## use critic
 
             my $full_name = $device_name . q{_} . $sensor;
+            verbose "full name is $full_name";
 
             # check if the sensor has to be renamed
             $sensor_values{$full_name} = $value;
