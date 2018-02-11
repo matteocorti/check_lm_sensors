@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/perl
 
 # check_lm_sensors is a Nagios plugin to monitor the values of on board sensors and hard
 # disk temperatures on Linux systems
@@ -430,7 +430,8 @@ sub parse_sensors {
       or $plugin->nagios_exit( $plugin_module->UNKNOWN,
         "Error closing $DEV_DIR: $OS_ERROR" );
 
-    for my $device (@devices) {
+    DEVICELOOP:
+    for my $device (sort @devices) {
 
         verbose "looking at device $device\n";
 
@@ -439,12 +440,14 @@ sub parse_sensors {
         # get device name
         my $name_handler;
 
+        my $namepath = "$DEV_DIR/$device/name";
+        $namepath = "$DEV_DIR/$device/device/name"
+            unless -e $namepath;
+
         ## no critic (InputOutput::RequireBriefOpen)
-        open $name_handler,      q{<}, "$DEV_DIR/$device/name"
-          or open $name_handler, q{<},
-          "$DEV_DIR/$device/device/name"
+        open $name_handler,      q{<}, $namepath
           or $plugin->nagios_exit( $plugin_module->UNKNOWN,
-            "Error reading $DEV_DIR/$device/[device/]name: $OS_ERROR" );
+            "Error reading $namepath: $OS_ERROR" );
         while (<$name_handler>) {
             chomp;
             $device_name = $_;
@@ -452,17 +455,17 @@ sub parse_sensors {
         }
         close $name_handler
           or $plugin->nagios_exit( $plugin_module->UNKNOWN,
-            "Error closing $DEV_DIR/$device/device/name: $OS_ERROR" );
+            "Error closing $namepath: $OS_ERROR" );
         ## use critic
 
 
         # list sensors
         my $sensorpath = "$DEV_DIR/$device/device/hwmon/$device/";
-        $sensorpath = "$DEV_DIR/$device/device/"
-            unless -e $sensorpath;
+        $sensorpath = "$DEV_DIR/$device/device/" unless -e $sensorpath;
+        $sensorpath = "$DEV_DIR/$device/" unless -e $sensorpath;
         verbose "device name is $device_name - will try to open $sensorpath\n";
         opendir $dir_handle, $sensorpath
-          or (verbose "error $!\n" and return);
+          or (verbose "error $!\n" and next DEVICELOOP);
         verbose "success!\n";
         my @sensors = apply { s/_input//mxs; }
         grep { m/^[^.].*_input/mxs } readdir $dir_handle;
