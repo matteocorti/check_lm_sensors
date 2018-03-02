@@ -1,5 +1,3 @@
-
-
 #!/usr/bin/perl
 
 # check_lm_sensors is a Nagios plugin to monitor the values of on board sensors and hard
@@ -379,7 +377,7 @@ sub parse_drives {
         my %sensor = (
             full_name => $name,
             value => $temp,
-            type => 'temp'
+            type => 'disk',
         );
 
                 while ( my ( $original_name, $chosen_name ) = each %renames ) {
