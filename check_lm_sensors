@@ -345,9 +345,9 @@ sub parse_drives {
 
         close $IN
           or $plugin->nagios_exit( $plugin_module->UNKNOWN,
-      "Cannot close input: $OS_ERROR\n" );
+            "Cannot close input: $OS_ERROR\n" );
 
-        DISKLOOP:
+      DISKLOOP:
         for my $name (@disks) {
 
             verbose "  checking disk /dev/$name\n", 1;
@@ -374,21 +374,22 @@ sub parse_drives {
             if ( $temp =~ m/^[\d]+$/mxs ) {
 
                 # check if the sensor has to be renamed
-        my %sensor = (
-            full_name => $name,
-            value => $temp,
-            type => 'disk',
-        );
+                my %sensor = (
+                    full_name => $name,
+                    value     => $temp,
+                    type      => 'disk',
+                );
 
                 while ( my ( $original_name, $chosen_name ) = each %renames ) {
                     if ( $original_name eq $name ) {
-            $sensordata->{$chosen_name} = \%sensor;
-                        verbose "found temperature for drive $chosen_name ($name = $_)\n";
-            next DISKLOOP
+                        $sensordata->{$chosen_name} = \%sensor;
+                        verbose
+"found temperature for drive $chosen_name ($name = $_)\n";
+                        next DISKLOOP;
                     }
                 }
 
-        $sensordata->{$name} = \%sensor;
+                $sensordata->{$name} = \%sensor;
 
                 verbose "found temperature for drive $name ($name = $_)\n";
 
@@ -415,7 +416,8 @@ sub slurp_file {
 
     my $data;
     ## no critic (InputOutput::RequireBriefOpen)
-    open my $fh, q{<}, $file
+    open my $fh, q{<},
+      $file
       or $plugin->nagios_exit( $plugin_module->UNKNOWN,
         "Error reading $file: $OS_ERROR" );
     while (<$fh>) {
@@ -457,30 +459,30 @@ sub parse_sensors {
       or $plugin->nagios_exit( $plugin_module->UNKNOWN,
         "Error closing $DEV_DIR: $OS_ERROR" );
 
-    DEVICELOOP:
-    for my $device (sort @devices) {
+  DEVICELOOP:
+    for my $device ( sort @devices ) {
 
         verbose "looking at device $device\n";
 
         # get device name
         my $devicenamepath = "$DEV_DIR/$device/name";
         $devicenamepath = "$DEV_DIR/$device/device/name"
-            unless -e $devicenamepath;
-    verbose "device name path is $devicenamepath\n";
+          unless -e $devicenamepath;
+        verbose "device name path is $devicenamepath\n";
 
-        my $device_name = slurp_file( $devicenamepath );
+        my $device_name = slurp_file($devicenamepath);
 
         # list sensors
         my $sensorpath = "$DEV_DIR/$device/device/hwmon/$device/";
         $sensorpath = "$DEV_DIR/$device/device/" unless -e $sensorpath;
-        $sensorpath = "$DEV_DIR/$device/" unless -e $sensorpath;
+        $sensorpath = "$DEV_DIR/$device/"        unless -e $sensorpath;
         verbose "device name is $device_name - will try to open $sensorpath\n";
 
         opendir $dir_handle, $sensorpath
-          or (verbose "error $!\n" and next DEVICELOOP);
+          or ( verbose "error $!\n" and next DEVICELOOP );
         verbose "success!\n";
         my @sensorslist = apply { s/_input//mxs; }
-            grep { m/^[^.].*_input/mxs } readdir $dir_handle;
+        grep { m/^[^.].*_input/mxs } readdir $dir_handle;
         closedir $dir_handle
           or $plugin->nagios_exit( $plugin_module->UNKNOWN,
             "Error closing $sensorpath: $OS_ERROR" );
@@ -491,38 +493,38 @@ sub parse_sensors {
             # get a device's value
             verbose "getting value for sensor $sensor\n";
             my $inputpath = $sensorpath . $sensor . '_input';
-            my $value = slurp_file( $inputpath );
-        verbose "raw value for $sensor is $value\n";
+            my $value     = slurp_file($inputpath);
+            verbose "raw value for $sensor is $value\n";
 
             # get device name
-            my $full_name = sprintf('%s_%s', $device_name, $sensor);
+            my $full_name = sprintf( '%s_%s', $device_name, $sensor );
             my $sensorlabelpath = $sensorpath . $sensor . '_label';
-        if ( -e $sensorlabelpath ) {
-                 my $sensorlabel = slurp_file( $sensorlabelpath );
-         $sensorlabel =~ s/\s//g; # strip all whitespace
-                 $full_name = sprintf('%s_%s', $device_name, lc($sensorlabel));
-        }
+            if ( -e $sensorlabelpath ) {
+                my $sensorlabel = slurp_file($sensorlabelpath);
+                $sensorlabel =~ s/\s//g;    # strip all whitespace
+                $full_name = sprintf( '%s_%s', $device_name, lc($sensorlabel) );
+            }
             verbose "full name is $full_name\n";
 
-        my ($type) = $sensor =~ m/^([a-z]+)\d+/;
+            my ($type) = $sensor =~ m/^([a-z]+)\d+/;
 
-        my %sensor = (
-            value     => $value,
-        full_name => $full_name,
-        type      => $type,
-        );
+            my %sensor = (
+                value     => $value,
+                full_name => $full_name,
+                type      => $type,
+            );
 
             # check if the sensor has to be renamed
             while ( my ( $original_name, $chosen_name ) = each %renames ) {
                 if ( $original_name eq $full_name ) {
 
-                $sensordata->{$chosen_name} = \%sensor;
+                    $sensordata->{$chosen_name} = \%sensor;
 
-            ## no critic (InputOutput::RequireCheckedSyscalls)
-            verbose "found sensor $chosen_name ($value)\n";
-            ## use critic
+                    ## no critic (InputOutput::RequireCheckedSyscalls)
+                    verbose "found sensor $chosen_name ($value)\n";
+                    ## use critic
 
-            next DEVICELOOP
+                    next DEVICELOOP
 
                 }
             }
@@ -531,7 +533,7 @@ sub parse_sensors {
             verbose "found sensor $full_name ($value)\n";
             ## use critic
 
-        $sensordata->{$full_name} = \%sensor
+            $sensordata->{$full_name} = \%sensor
 
         }
 
@@ -664,7 +666,7 @@ if ($list) {
         ## use critic
 
     }
-    exit
+    exit;
 }
 
 ###############
