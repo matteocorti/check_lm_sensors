@@ -69,15 +69,14 @@ sub load_module {
 
 use version; our $VERSION = '4.1.1';
 
-my $drives;
+my $dodrives;
+my $dosensors;
 my $hddtemp_bin;
 my $help;
 my $list;
 my $plugin;
 my $prog_name;
 my $raw;
-my $sensors;
-my $unknowns;
 my $verbosity;
 my %highs;
 my %lows;
@@ -87,12 +86,11 @@ my %ranges;
 my %sensor_values;
 
 # initialization
-$drives    = 1;
+$dodrives    = 0;
+$dosensors   = 0;
 $help      = q{};
 $prog_name = 'LM_SENSORS';
 $plugin    = $plugin_module->new( shortname => $prog_name );
-$sensors   = 1;
-$unknowns  = q{};
 $verbosity = 0;
 
 ##############################################################################
@@ -187,15 +185,9 @@ sub check_arguments {
 sub usage {
     my $msg = shift;
 
-    if ( defined $msg ) {
-
-        ## no critic (InputOutput::RequireCheckedSyscalls)
-
-        print "$msg\n";
-
-        ## use critic
-
-    }
+    ## no critic (InputOutput::RequireCheckedSyscalls)
+    print "$msg\n" if defined $msg;
+    ## use critic
 
     ## no critic (InputOutput::RequireCheckedSyscalls)
 
@@ -236,11 +228,9 @@ Options:
 
   --list          list all available sensors
 
-  --nosensors     disable checks on check lm_sensors
-
-  --nodrives      disable checks on drive temperatures
-
   -d, --drives    enable checks on drive temperature
+
+  -s, --sensors   enable checks on sensors
 
   --hddtemp_bin   manually specifies the location of the hddtemp binary
 
@@ -256,7 +246,7 @@ EOT
 
     $plugin->nagios_exit( $plugin_module->UNKNOWN, 'Invalid arguments' );
 
-    return;
+    exit
 
 }
 
@@ -602,7 +592,7 @@ my $result;
 
 Getopt::Long::Configure( 'bundling', 'no_ignore_case' );
 $result = GetOptions(
-    'drives!'       => \$drives,
+    'drives!'       => \$dodrives,
     'hddtemp_bin=s' => \$hddtemp_bin,
     'help|?'        => sub { usage() },
     'high|h=s'      => \%highs,
@@ -611,7 +601,7 @@ $result = GetOptions(
     'range|r=s'     => \%ranges,
     'rename=s'      => \%renames,
     'raw'           => \$raw,
-    'sensors!'      => \$sensors,
+    'sensors!'      => \$dosensors,
     'verbose|v+'    => \$verbosity,
     'version'       => sub {
 
@@ -624,9 +614,11 @@ $result = GetOptions(
     }
 );
 
-if ( !$result ) {
-    usage();
-}
+usage() unless $result;
+
+$plugin->nagios_exit( $plugin_module->UNKNOWN,
+    'at least one check has to be specified' )
+unless ($dosensors or $dodrives);
 
 if (   !( defined $list )
     && !(%highs)
@@ -639,7 +631,7 @@ if (   !( defined $list )
 
 my $data = {};
 
-if ($drives) {
+if ($dodrives) {
     if ( !$hddtemp_bin ) {
         $hddtemp_bin = get_path('hddtemp');
     }
@@ -652,10 +644,13 @@ if ($drives) {
     }
 }
 
-parse_sensors($data);
+if ($dosensors) {
 
-if ( !$raw ) {
-    convert_values($data);
+    parse_sensors($data);
+
+    convert_values($data)
+        unless $raw;
+
 }
 
 if ($list) {
