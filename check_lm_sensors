@@ -83,8 +83,6 @@ my %lows;
 my %renames;
 my %ranges;
 
-my %sensor_values;
-
 # initialization
 $dodrives    = 0;
 $dosensors   = 0;
@@ -592,7 +590,7 @@ my $result;
 
 Getopt::Long::Configure( 'bundling', 'no_ignore_case' );
 $result = GetOptions(
-    'drives!'       => \$dodrives,
+    'drives|d!'     => \$dodrives,
     'hddtemp_bin=s' => \$hddtemp_bin,
     'help|?'        => sub { usage() },
     'high|h=s'      => \%highs,
@@ -601,7 +599,7 @@ $result = GetOptions(
     'range|r=s'     => \%ranges,
     'rename=s'      => \%renames,
     'raw'           => \$raw,
-    'sensors!'      => \$dosensors,
+    'sensors|s!'    => \$dosensors,
     'verbose|v+'    => \$verbosity,
     'version'       => sub {
 
@@ -657,7 +655,7 @@ if ($list) {
     for my $sensor ( sort keys %$data ) {
 
         ## no critic (InputOutput::RequireCheckedSyscalls)
-        printf "%s -> %s\n", $sensor, $sensor_values{$sensor};
+        printf "%s -> %s\n", $sensor, $data->{$sensor}->{value};
         ## use critic
 
     }
