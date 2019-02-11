@@ -450,11 +450,17 @@ sub parse_sensors {
 
         verbose "looking at device $device\n";
 
-        # get device name
+        # get device name - if this gets bigger, make an array
         my $devicenamepath = "$DEV_DIR/$device/name";
-        $devicenamepath = "$DEV_DIR/$device/device/name"
-          unless -e $devicenamepath;
-        verbose "device name path is $devicenamepath\n";
+        unless (-e $devicenamepath) {
+            verbose "device name path $devicenamepath doesnt exist. trying next.\n";
+            $devicenamepath = "$DEV_DIR/$device/device/name";
+            unless (-e $devicenamepath) {
+                verbose "device name path $devicenamepath doesnt exist. giving up.\n";
+                next DEVICELOOP
+            }
+        }
+        verbose "decided upon device name path $devicenamepath\n";
 
         my $device_name = slurp_file($devicenamepath);
 
