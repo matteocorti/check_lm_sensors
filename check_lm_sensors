@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # check_lm_sensors is a Nagios plugin to monitor the values of on board sensors and hard
 # disk temperatures on Linux systems
@@ -19,10 +19,8 @@ use strict;
 use warnings;
 
 use Carp;
-use Data::Dumper;
 use English qw(-no_match_vars);
 use Getopt::Long;
-use List::MoreUtils qw(apply);
 
 my $plugin_module = load_module( 'Monitoring::Plugin', 'Nagios::Plugin' );
 my $plugin_threshold_module =
@@ -469,7 +467,7 @@ sub parse_sensors {
         opendir $dir_handle, $sensorpath
           or ( verbose "error $!\n" and next DEVICELOOP );
         verbose "success!\n";
-        my @sensorslist = apply { s/_input//mxs; }
+        my @sensorslist = map { $_ =~ s/_input//mxs; $_ }
         grep { m/^[^.].*_input/mxs } readdir $dir_handle;
         closedir $dir_handle
           or $plugin->nagios_exit( $plugin_module->UNKNOWN,
