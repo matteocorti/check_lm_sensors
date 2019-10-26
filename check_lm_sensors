@@ -25,6 +25,8 @@ use Getopt::Long;
 use Carp;
 use English qw(-no_match_vars);
 
+use JSON::MaybeXS qw(decode_json);
+
 my $plugin_module = load_module( 'Monitoring::Plugin', 'Nagios::Plugin' );
 my $plugin_threshold_module =
   load_module( 'Monitoring::Plugin::Threshold', 'Nagios::Plugin::Threshold' );
@@ -423,36 +425,31 @@ sub parse_sensors {
           or $plugin->nagios_exit( $plugin_module->UNKNOWN,
             "Error while executing $command: $OS_ERROR\n" );
 
-        $command = "$sensors_bin -A | grep \:";
+        $command = "$sensors_bin -Aj";
 
         $pid = open $output, q{-|}, "$command 2>&1"
           or
           $plugin->nagios_exit( $plugin_module->UNKNOWN, "Cannot execute $command: $OS_ERROR" );
 
-        while (<$output>) {
-            chomp;
-
-            if (/(.*):\s+\+?([0-9\-\.]*)\ ?([^\ ]*)\ /mx) {
-
-                my $name  = $1;
-                my $value = $2;
-
-                if ($sanitize) {
-                    $name =~ s/\ //gmx;
+        my $json = decode_json(do { local $/ = undef; scalar <$output>} );
+        foreach my $chip (values(%{$json})) {
+            while (my ($name, $values) = each(%{$chip})) {
+                while (my ($type, $value) = each(%{$values})) {
+                    if ($type =~ /_(input|average)$/) {
+                        if ($sanitize) {
+                            $name =~ s/\ //gmx;
+                        }
+                        if ($rename{$name}) {
+                            $name = $rename{$name};
+                        }
+                        $sensor_values{$name} = $value;
+                        if ($verbosity || $list) {
+                            print "found sensor $name ($value)\n";
+                        }
+                        last;
+                    }
                 }
-
-                if ( $rename{$name} ) {
-                    $name = $rename{$name};
-                }
-
-                $sensor_values{$name} = $value;
-
-                if ( $verbosity || $list ) {
-                    print "found sensor $name ($value)\n";
-                }
-
             }
-
         }
 
         close $output
