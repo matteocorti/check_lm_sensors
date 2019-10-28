@@ -17,8 +17,8 @@ my %prereqs = (
 requires 'Carp'                      => 0,
 requires 'English'                   => 0,
 requires 'Getopt::Long'              => 0,
-requires 'version'                   => 0
-
+requires 'version'                   => 0,
+requires 'JSON::MaybeXS'             => 0,
 );
 
 if( eval { require Monitoring::Plugin } ) {
