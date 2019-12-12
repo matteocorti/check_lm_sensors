@@ -427,7 +427,7 @@ sub parse_sensors {
 
         $command = "$sensors_bin -Aj";
 
-        $pid = open $output, q{-|}, "$command 2>&1"
+        $pid = open $output, q{-|}, "$command 2>/dev/null"
           or
           $plugin->nagios_exit( $plugin_module->UNKNOWN, "Cannot execute $command: $OS_ERROR" );
 
