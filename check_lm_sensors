@@ -322,6 +322,10 @@ sub parse_drives {
                 next;
             }
 
+	    if ( not defined $name  ) {
+		next;
+	    }
+
             if ( $name =~ /[0-9]$/mx ) {
                 next;
             }
